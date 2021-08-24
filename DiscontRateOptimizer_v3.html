@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+</head>
+<body>
+    <div class="container">
+        <h2>Room Detail List <small>Responsive [Triggers on 767px]</small></h2>
+        <ul class="responsive-table" id="special-offer-table">
+            <li class="table-header">
+                <div class="col col-1">ID</div>
+                <div class="col col-2">Discount Rate</div>
+                <div class="col col-3">Combinable With</div>
+            </li>
+        </ul>
+    </div>
+</body>
+</html>
+
+<style>
+    body {
+        font-family: "lato", sans-serif;
+    }
+
+    .container {
+        max-width: 1000px;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    h2 {
+        font-size: 26px;
+        margin: 20px 0;
+        text-align: center;
+    }
+
+        h2 small {
+            font-size: 0.5em;
+        }
+
+    .responsive-table li {
+        border-radius: 3px;
+        padding: 25px 30px;
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 25px;
+    }
+
+    .responsive-table .table-header {
+        background-color: #95a5a6;
+        font-size: 14px;
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+    }
+
+    .responsive-table .table-row {
+        background-color: #ffffff;
+        box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.1);
+    }
+
+    .responsive-table .col-1 {
+        flex-basis: 10%;
+    }
+
+    .responsive-table .col-2 {
+        flex-basis: 40%;
+    }
+
+    .responsive-table .col-3 {
+        flex-basis: 25%;
+    }
+
+    .responsive-table .col-4 {
+        flex-basis: 25%;
+    }
+
+    @media all and (max-width: 767px) {
+        .responsive-table .table-header {
+            display: none;
+        }
+
+        .responsive-table li {
+            display: block;
+        }
+
+        .responsive-table .col {
+            flex-basis: 100%;
+        }
+
+        .responsive-table .col {
+            display: flex;
+            padding: 10px 0;
+        }
+
+            .responsive-table .col:before {
+                color: #6c7a89;
+                padding-right: 10px;
+                content: attr(data-label);
+                flex-basis: 50%;
+                text-align: right;
+            }
+    }
+</style>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+    //#region Setup
+    specialOfferList = [
+        {
+            id: 1,
+            discountRate: 2,
+            combinableWith: []
+        },
+        {
+            id: 2,
+            discountRate: 4,
+            combinableWith: [3, 6, 8]
+        },
+        {
+            id: 3,
+            discountRate: 2,
+            combinableWith: [2, 6, 8]
+        },
+        {
+            id: 4,
+            discountRate: 5,
+            combinableWith: []
+        },
+        {
+            id: 5,
+            discountRate: 10,
+            combinableWith: []
+        },
+        {
+            id: 6,
+            discountRate: 15,
+            combinableWith: [2, 3]
+        },
+        {
+            id: 7,
+            discountRate: 9,
+            combinableWith: []
+        },
+        {
+            id: 8,
+            discountRate: 19,
+            combinableWith: [2, 3]
+        }
+    ];
+    for (var indexer = 0; indexer < specialOfferList.length; indexer++) {
+        var li = document.createElement("li");
+        li.classList.add("table-row");
+
+        // ID Column
+        var idColumn = document.createElement("div");
+        idColumn.classList.add("col");
+        idColumn.classList.add("col-1");
+        idColumn.classList.add("id-" + specialOfferList[indexer].id);
+        idColumn.innerHTML = specialOfferList[indexer].id;
+        li.appendChild(idColumn);
+
+        // Discount Rate Column
+        var discountRateColumn = document.createElement("div");
+        discountRateColumn.classList.add("col");
+        discountRateColumn.classList.add("col-2");
+        discountRateColumn.innerHTML = "% " + specialOfferList[indexer].discountRate;
+        li.appendChild(discountRateColumn);
+
+        // Combinable With Column
+        var combinableWithColumn = document.createElement("div");
+        combinableWithColumn.classList.add("col");
+        combinableWithColumn.classList.add("col-3");
+        combinableWithColumn.innerHTML = specialOfferList[indexer].combinableWith;
+        li.appendChild(combinableWithColumn);
+
+        document.getElementById("special-offer-table").appendChild(li);
+    }
+    //#endregion
+
+    // CALCULATION
+    for (var i = 0; i < specialOfferList.length; i++) {
+        specialOfferList[i].combinableWith.unshift(specialOfferList[i].id)
+        specialOfferList[i].combinableWith = specialOfferList[i].combinableWith.sort();
+    }
+
+    var optimizedSpecialOfferList = [];
+    for (var i = 0; i < specialOfferList.length; i++) {
+        var specialOffer = specialOfferList[i];
+        var cb1 = specialOffer.combinableWith;
+        var result = true;
+        for (var j = 0; j < cb1.length; j++) {
+            var possibleId = cb1[j];
+            var possibleOffer = FindOfferById(specialOfferList, possibleId);
+            var cb2 = possibleOffer.combinableWith;
+            for (var k = 0; k < cb1.length; k++) {
+                if (!cb2.includes(cb1[k])) {
+                    result = false;
+                    break;
+                }
+            }
+        }
+        if (result) {
+            //optimizedSpecialOfferList.push(cb1);
+            optimizedSpecialOfferList.push({
+                idList: cb1,
+                totalDiscountRate: specialOfferList.filter(function (specialOffer) {
+                    return cb1.includes(specialOffer.id)
+                }).reduce(function (sumValue, currentValue) {
+                    return sumValue + currentValue.discountRate
+                }, 0)
+            });
+        }
+    }
+    function FindOfferById(arr, id) {
+        return arr.filter(function (elem) {
+            return elem.id == id;
+        })[0];
+    }
+    // CALCULATION
+
+    // OUTPUT
+    optimizedSpecialOfferList = optimizedSpecialOfferList.sort(function (a, b) {
+        if (a.totalDiscountRate > b.totalDiscountRate) return -1;
+        if (a.totalDiscountRate < b.totalDiscountRate) return 1;
+        return 0;
+    });
+    optimizedSpecialOfferList[0].idList.forEach(specialOffer => {
+        $("#special-offer-table .col.col-1.id-" + specialOffer).parents("li").css("background-color", "aqua");
+    });
+    // OUTPUT
+</script>
